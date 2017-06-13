@@ -106,6 +106,7 @@ module Elasticsearch
           target_type  = options.delete(:type)      || document_type
           transform    = options.delete(:transform) || __transform
           return_value = options.delete(:return)    || 'count'
+          before_batch = options.delete(:before_batch)
 
           unless transform.respond_to?(:call)
             raise ArgumentError,
@@ -120,6 +121,8 @@ module Elasticsearch
           end
 
           __find_in_batches(options) do |batch|
+            before_batch.call(batch) if before_batch.present?
+
             response = client.bulk \
                          index:   target_index,
                          type:    target_type,
