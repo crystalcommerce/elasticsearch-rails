@@ -26,6 +26,12 @@ module Elasticsearch
 
       module ClassMethods
 
+        def log_page_stat(message)
+          File.open("/var/log/es_pages.log", "a+") do |f|
+            f.write("#{message}\n")
+          end
+        end
+
         # Import all model records into the index
         #
         # The method will pick up correct strategy based on the `Importing` module
@@ -107,6 +113,7 @@ module Elasticsearch
           transform    = options.delete(:transform) || __transform
           return_value = options.delete(:return)    || 'count'
           before_batch = options.delete(:before_batch)
+          starting_page = options.delete(:starting_page) || 1
 
           unless transform.respond_to?(:call)
             raise ArgumentError,
@@ -120,17 +127,24 @@ module Elasticsearch
                   "#{target_index} does not exist to be imported into. Use create_index! or the :force option to create it."
           end
 
+          current_page = 0
           __find_in_batches(options) do |batch|
-            before_batch.call(batch) if before_batch.present?
+            current_page += 1
+            if current_page >= starting_page
+              log_page_stat("[#{batch.first.class}] Running Page: #{current_page}")
+              before_batch.call(batch) if before_batch.present?
 
-            response = client.bulk \
-                         index:   target_index,
-                         type:    target_type,
-                         body:    __batch_to_bulk(batch, transform)
+              response = client.bulk \
+                           index:   target_index,
+                           type:    target_type,
+                           body:    __batch_to_bulk(batch, transform)
 
-            yield response if block_given?
-
-            errors +=  response['items'].select { |k, v| k.values.first['error'] }
+              yield response if block_given?
+              log_page_stat("Done Page: #{current_page}")
+              errors +=  response['items'].select { |k, v| k.values.first['error'] }
+            else
+              log_page_stat("[#{batch.first.class}] Skipping Page: #{current_page}")
+            end
           end
 
           self.refresh_index! if refresh
