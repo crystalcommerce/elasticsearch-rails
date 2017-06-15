@@ -131,6 +131,12 @@ module Elasticsearch
             yield response if block_given?
 
             errors +=  response['items'].select { |k, v| k.values.first['error'] }
+            unless errors.empty?
+              puts "IMPORT FAILED"
+              puts errors.inspect
+              puts __batch_to_ids(batch).inspect
+              raise Exception, "Abort the import"
+            end
           end
 
           self.refresh_index! if refresh
@@ -145,6 +151,10 @@ module Elasticsearch
 
         def __batch_to_bulk(batch, transform)
           batch.map { |model| transform.call(model) }
+        end
+
+        def __batch_to_ids(batch)
+          batch.map { |model| model.id.to_s }
         end
       end
 
