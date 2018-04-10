@@ -27,8 +27,10 @@ module Elasticsearch
       module ClassMethods
 
         def log_page_stat(message)
-          File.open("/var/log/es_pages.log", "a+") do |f|
-            f.write("#{message}\n")
+          if defined?(Rails) && !Rails.env.test?
+            File.open("/var/log/es_pages.log", "a+") do |f|
+              f.write("#{message}\n")
+            end
           end
         end
 
