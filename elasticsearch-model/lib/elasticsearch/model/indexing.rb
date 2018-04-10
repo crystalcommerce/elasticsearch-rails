@@ -362,7 +362,7 @@ module Elasticsearch
           client.delete(
             { index: index_name,
               type:  document_type,
-              id:    srespond_to?(:es_id) && es_id.present? ? es_id : self.id }.merge(options)
+              id:    respond_to?(:es_id) && es_id.present? ? es_id : self.id }.merge(options)
           )
         end
 
