@@ -68,6 +68,7 @@ module Elasticsearch
             s = all
             if options[:user_collection].present?
               s = from_collection(options[:user_collection])
+              puts "TOTAL: #{s.count}: #{options[:user_collection].name}"
             end
             s.no_timeout.each_slice(options[:batch_size]) do |items|
               yield items
