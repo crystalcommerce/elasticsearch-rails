@@ -64,14 +64,21 @@ module Elasticsearch
           #
           def __find_in_batches(options={}, &block)
             options[:batch_size] ||= 1_000
-  
-            all.no_timeout.each_slice(options[:batch_size]) do |items|
+
+            s = all
+            if options[:user_collection].present?
+              s = from_collection(options[:user_collection])
+            end
+            s.no_timeout.each_slice(options[:batch_size]) do |items|
               yield items
             end
           end
 
           def __transform
-            lambda {|a|  { index: { _id: a.id.to_s, data: a.as_indexed_json } }}
+            lambda {|a|  { index: {
+              _id: a.respond_to?(:es_id) && a.es_id.present? ? a.es_id : a.id.to_s,
+              data: a.as_indexed_json
+            } }}
           end
         end
 
