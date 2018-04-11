@@ -94,6 +94,7 @@ module Elasticsearch
           # @see http://api.rubyonrails.org/classes/ActiveRecord/Batches.html ActiveRecord::Batches.find_in_batches
           #
           def __find_in_batches(options={}, &block)
+            puts "AR find in batches"
             query = options.delete(:query)
             named_scope = options.delete(:scope)
             preprocess = options.delete(:preprocess)

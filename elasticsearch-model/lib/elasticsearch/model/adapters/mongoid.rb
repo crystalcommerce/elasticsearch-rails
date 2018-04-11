@@ -63,6 +63,9 @@ module Elasticsearch
           # @see https://github.com/karmi/retire/pull/724
           #
           def __find_in_batches(options={}, &block)
+            puts "Mongoid find in batches\n"
+            print options
+            puts "\n"
             options[:batch_size] ||= 1_000
 
             s = all
@@ -70,6 +73,7 @@ module Elasticsearch
               s = from_collection(options[:user_collection])
               puts "TOTAL: #{s.count}: #{options[:user_collection].name}"
             end
+            
             s.no_timeout.each_slice(options[:batch_size]) do |items|
               yield items
             end
