@@ -108,9 +108,6 @@ module Elasticsearch
         #    Article.import return: 'errors'
         #
         def import(options={}, &block)
-          puts "Importing\n"
-          print options
-          puts "\n"
           errors       = []
           refresh      = options.delete(:refresh)   || false
           target_index = options.delete(:index)     || index_name
